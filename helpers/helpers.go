@@ -7,7 +7,15 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
+
+type Network struct {
+    Gateway bool
+    Timeout int
+    Threads int
+}
 
 func RandomizeUserAgent() string {
 	rand.Seed(time.Now().UnixNano())
@@ -23,6 +31,13 @@ func SetHeaders(req *http.Request) {
     req.Header.Set("User-Agent", RandomizeUserAgent())
     req.Header.Set("Accept", "application/json")
     req.Header.Set("Content-Type", "application/json")
+}
+
+func InitConfig() Network {
+    data, _ := os.ReadFile("config/config.yaml")
+    var raw map[string]Network
+    yaml.Unmarshal(data, &raw)
+    return raw["network"]
 }
 
 func LoadUsernames() []string {

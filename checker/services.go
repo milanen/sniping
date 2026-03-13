@@ -11,27 +11,28 @@ import (
 	"time"
 )
 
-func createCustomClient(proxy string) (*http.Client, error) {
-	proxyUrl, err := url.Parse(proxy)
-	if err != nil {
-		return nil, fmt.Errorf("invalid proxy URL: %w", err)
-	}
-
-	// configure the http.Transport
-	transport := &http.Transport{
-		Proxy: http.ProxyURL(proxyUrl),
-	}
-
+func createCustomClient(proxy string, timeout int, useTransport bool) (*http.Client, error) {
 	// create and return http client
 	client := &http.Client{
-		Timeout: 5 * time.Second,
-		Transport: transport,
+		Timeout: time.Duration(timeout) * time.Second,
+	}
+
+	if useTransport {
+		proxyUrl, err := url.Parse(proxy)
+		if err != nil {
+			return nil, err
+		}
+
+		// configure the http.Transport
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyUrl),
+		}
 	}
 
 	return client, nil
 }
 
-func Discord(usernames []string) {
+func Discord(usernames []string, prefs helpers.Network) {
 	api := "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
 
 	for _, username := range usernames {
@@ -45,7 +46,7 @@ func Discord(usernames []string) {
 		jsonData, _ := json.Marshal(payload)
 
 		// creating client
-		client, err := createCustomClient(helpers.GetProxy())
+		client, err := createCustomClient(helpers.GetProxy(), prefs.Timeout, prefs.Gateway)
 
 		if err != nil {
 			fmt.Printf("Error creating client: %v\n", err)

@@ -1,3 +1,4 @@
 network:
+  gateway: true
   timeout: 5
   threads: 1

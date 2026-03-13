@@ -6,5 +6,6 @@ import (
 
 func Run() {
 	users := helpers.LoadUsernames()
-	Discord(users)
+	net := helpers.InitConfig()
+	Discord(users, net)
 }
