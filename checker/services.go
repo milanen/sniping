@@ -79,10 +79,12 @@ func Discord(usernames []string, prefs helpers.Network) {
 
 			if (response["taken"] != true) {
 				fmt.Printf("Username %s is available on Discord\n", username)
+				helpers.SaveChecked(username, true)
 				continue
 			}
 
 		fmt.Printf("Username %s is taken on Discord\n", username)
+		helpers.SaveChecked(username, false)
 		}
 	}
 }

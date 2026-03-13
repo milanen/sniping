@@ -60,3 +60,25 @@ func LoadUsernames() []string {
 
 	return users
 }
+
+func writeFile(path string, data []byte) {
+    f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer f.Close()
+
+    _, err = f.Write(data)
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+func SaveChecked(user string, isValid bool) {
+    data := []byte(user + "\n")
+    if isValid {
+        writeFile("out/valids.txt", data)
+        return
+    }
+    writeFile("out/checked.txt", data)
+}
+
