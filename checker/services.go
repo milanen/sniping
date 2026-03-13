@@ -6,9 +6,30 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"sniping/helpers"
 	"time"
 )
+
+func createCustomClient(proxy string) (*http.Client, error) {
+	proxyUrl, err := url.Parse(proxy)
+	if err != nil {
+		return nil, fmt.Errorf("invalid proxy URL: %w", err)
+	}
+
+	// configure the http.Transport
+	transport := &http.Transport{
+		Proxy: http.ProxyURL(proxyUrl),
+	}
+
+	// create and return http client
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: transport,
+	}
+
+	return client, nil
+}
 
 func Discord(usernames []string) {
 	api := "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
@@ -23,9 +44,12 @@ func Discord(usernames []string) {
 
 		jsonData, _ := json.Marshal(payload)
 
-		// http client
-		client := &http.Client{
-			Timeout: 5 * time.Second,
+		// creating client
+		client, err := createCustomClient(helpers.GetProxy())
+
+		if err != nil {
+			fmt.Printf("Error creating client: %v\n", err)
+			return
 		}
 
 		req, err := http.NewRequest("POST", api, bytes.NewBuffer(jsonData))

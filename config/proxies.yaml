@@ -1,0 +1,5 @@
+proxies:
+  host: "127.0.0.1"
+  port: "8080"
+  user: "user" # or null
+  pass: "pass" # or null
