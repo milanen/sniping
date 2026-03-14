@@ -8,7 +8,7 @@ import (
 )
 
 func Discord(usernames []string, prefs helpers.Network) {
-	api := "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
+	api := helpers.Endpoint.Discord
 
 	for _, username := range usernames {
 		fmt.Printf("Checking Discord for username: %s\n", username)
