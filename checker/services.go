@@ -45,16 +45,16 @@ func Discord(usernames []string, prefs helpers.Network) {
 				helpers.SaveChecked(username, true)
 				continue
 			}
+		}
 
-			if resp.StatusCode == 429 {
+		if resp.StatusCode == 429 {
 			fmt.Printf("Rate limited! Adding %s to exception list...\n", username)
 			HandleException(username, ExceptList)
 			continue
-			}
-
-			fmt.Printf("Username %s is taken on Discord\n", username)
-			helpers.SaveChecked(username, false)
 		}
+
+		fmt.Printf("Username %s is taken on Discord\n", username)
+		helpers.SaveChecked(username, false)
 	}
 	if len(ExceptList.Users) > 0 { // prevent overflow
 		fmt.Printf("\nProcessing %d usernames in the exception list...\n", len(ExceptList.Users))
