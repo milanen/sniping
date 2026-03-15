@@ -73,6 +73,7 @@ func writeFile(path string, data []byte) {
         log.Fatal(err)
     }
 }
+
 func SaveChecked(user string, isValid bool) {
     data := []byte(user + "\n")
     if isValid {

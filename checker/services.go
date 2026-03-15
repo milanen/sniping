@@ -1,7 +1,6 @@
 package checker
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"sniping/helpers"
@@ -9,6 +8,7 @@ import (
 
 func Discord(usernames []string, prefs helpers.Network) {
 	api := helpers.Endpoint.Discord
+	ExceptList := &ExceptList{}
 
 	for _, username := range usernames {
 		fmt.Printf("Checking Discord for username: %s\n", username)
@@ -19,34 +19,45 @@ func Discord(usernames []string, prefs helpers.Network) {
 		// create client
 		client, err := createCustomClient(helpers.GetProxy(), prefs.Timeout, prefs.Gateway)
 		if err != nil {
-			fmt.Println("Request failed:", err)
+			fmt.Printf("Request failed: Adding %s to exception list...\n", username)
+			HandleException(username, ExceptList)
 			continue
 		}
 
 		// make request
 		resp, err := DoRequest(client, "POST", api, payload)
 		if err != nil {
-			fmt.Println("Request failed:", err)
+			fmt.Printf("Request failed: Adding %s to exception list...\n", username)
+			HandleException(username, ExceptList)
 			continue
 		}
 
 		defer resp.Body.Close()
 
 		if resp.StatusCode == 200 {
-			var response map[string]any
-			err := json.NewDecoder(resp.Body).Decode(&response)
+			msg, err := GetResponse(resp)
 			if err != nil {
-				log.Fatal(err)
+    			log.Fatal(err)
 			}
 
-			if (response["taken"] != true) {
+			if (msg["taken"] != true) {
 				fmt.Printf("Username %s is available on Discord\n", username)
 				helpers.SaveChecked(username, true)
 				continue
 			}
 
-		fmt.Printf("Username %s is taken on Discord\n", username)
-		helpers.SaveChecked(username, false)
+			if resp.StatusCode == 429 {
+			fmt.Printf("Rate limited! Adding %s to exception list...\n", username)
+			HandleException(username, ExceptList)
+			continue
+			}
+
+			fmt.Printf("Username %s is taken on Discord\n", username)
+			helpers.SaveChecked(username, false)
 		}
+	}
+	if len(ExceptList.Users) > 0 { // prevent overflow
+		fmt.Printf("\nProcessing %d usernames in the exception list...\n", len(ExceptList.Users))
+    	ExecExceptionList(ExceptList, prefs)
 	}
 }

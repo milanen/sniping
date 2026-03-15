@@ -4,11 +4,27 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"sniping/helpers"
+	"sync"
 	"time"
 )
+
+type ExceptList struct {
+    Users []string
+    Mu sync.Mutex
+}
+
+func GetResponse(resp *http.Response) (map[string]any, error) {
+    var response map[string]any
+			err := json.NewDecoder(resp.Body).Decode(&response)
+			if err != nil {
+				log.Fatal(err)
+			}
+    return response, nil
+}
 
 func createCustomClient(proxy string, timeout int, useTransport bool) (*http.Client, error) {
 	// create and return http client
@@ -63,4 +79,14 @@ func DoRequest(
 	helpers.SetHeaders(req)
 
     return client.Do(req)
+}
+
+func HandleException(username string, list *ExceptList) {
+    list.Mu.Lock()
+    list.Users = append(list.Users, username)
+    list.Mu.Unlock()
+}
+
+func ExecExceptionList(list *ExceptList, prefs helpers.Network) {
+    	Discord(list.Users, prefs)
 }
